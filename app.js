@@ -14,18 +14,35 @@ app.set('view engine', 'ejs');
 app.use(express.json())
 app.use(cookieParser())
 
-app.get('/', (req,res) => {
-    const token = req.cookies.access_token
-    if (!token){
-        res.render('index')
-    }
-    
-    try{
-        const data = jwt.verify(token, SECRET_JWT_KEY)
-        res.render('index', data)   // date es el payload --> { _id, username }
+// Creamos middleware
+app.use((req, res, next) => {
+    const token = req.cookies.access_token;
+    req.session = { user: null };
+
+    try {
+        const data = jwt.verify(token, SECRET_JWT_KEY);
+        req.session.user = data;
     } catch(error){
-        res.render('index')
+        req.session.user = null;
     }
+    next();     // seguir a la siguiente ruta o middleware
+})
+
+app.get('/', (req,res) => {
+    const { user } = req.session
+    res.render('index', user)
+
+    // const token = req.cookies.access_token
+    // if (!token){
+    //     res.render('index')
+    // }
+    
+    // try{
+    //     const data = jwt.verify(token, SECRET_JWT_KEY)
+    //     res.render('index', data)   // date es el payload --> { _id, username }
+    // } catch(error){
+    //     res.render('index')
+    // }
 })
 
 // Este bloque de codigo devuelve al username de jimena como Administradora
@@ -70,19 +87,22 @@ app.post('/register', async (req, res) => {
 app.post('/logout', (req, res) => {})
 
 app.get('/protected', (req, res) => {
-    const token = req.cookies.access_token
-    if (!token){
+    const { user } = req.session;
+    if (!user){
         return res.status(403).send('Access not authorized')
     }
+    res.render('protected', user)
+    // const token = req.cookies.access_token
+    // if (!token){
+    //     return res.status(403).send('Access not authorized')
+    // }
 
-    try{
-        const data = jwt.verify(token, SECRET_JWT_KEY)
-        res.render('protected', data)   // date es el payload --> { _id, username }
-    } catch(error){
-        return res.status(403).send('Access not authorized')
-    }
-    // TODO: if sesion del usuario
-    // TODO: else 401
+    // try{
+    //     const data = jwt.verify(token, SECRET_JWT_KEY)
+    //     res.render('protected', data)   // date es el payload --> { _id, username }
+    // } catch(error){
+    //     return res.status(403).send('Access not authorized')
+    // }
 })
 
 // Levantar servidor
