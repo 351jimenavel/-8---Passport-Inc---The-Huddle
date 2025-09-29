@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Registration Forms</title>
+</head>
+<body>
+    <div class="container">
+        <% if (typeof username !== 'undefined'){ %>
+            <div class="form-container">
+                <h2> Hola <%= username %>! </h2>
+                <p>Estas en el panel de administracion</p>
+                <button id="close-session">Cerrar sesion</button>
+            </div>
+        <% } %>
+            <% if (typeof username === 'undefined'){ %>
+                <div class="form-container">
+                    <form id="login-form">
+                        <h2> Login </h2>
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" name="username" required>
+
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" name="password" required>
+                        <button type="submit">Login</button>
+                        <span>&nbsp;</span>
+                    </form>
+                </div>
+                <div class="form-container">
+                    <form id="register-form">
+                        <h2>Register</h2>
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" name="username" required>
+                        
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" name="password" required>
+
+                        <label for="register-confirm-password">Confirm Password</label>
+                        <input type="password" id="register-confirm-password" name="confirm-password" required>
+
+                        <button type="submit">Register</button>
+                        <span>&nbsp;</span>
+                    </form>
+                </div>
+                <% } %>
+    </div>
+    <script>
+        const $ = el => document.querySelector(el)
+
+        const loginForm = $('#login-form')
+        const loginSpan = $('#login-span')
+
+        const registerForm = $('#register-form')
+        const registerSpan = $('#register-span')
+        const logoutButton = $('#close-session')
+
+        loginForm?.addEventListener('submit', e => {
+            e.preventDefault()
+
+            const username = $('#login-username').value
+            const password = $('#login-password').value
+
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type':'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+                .then(res => {
+                    if(res.ok) {
+                        loginSpan.innerText = 'Sesion iniciada... Entrando...'
+                        loginSpan.style.color = 'green'
+                        setTimeout(()=> {
+                            window.location.href = '/protected'
+                        }, 2000)
+                    } else {
+                        loginSpan.innerText = 'Error al iniciar sesion'
+                        loginSpan.style.color = 'red'
+                    }
+                })
+        })
+        registerForm?.addEventListener('submit', e => {
+            e.preventDefault()
+            const username = $('#register-username').value
+            const password = $('#register-password').value
+            const confirmPassword = $('#register-confirm-password').value
+
+            if (password !== confirmPassword){
+                alert('Passwords do not match')
+                return
+            }
+
+            fetch('/register', {
+                method:'POST',
+                headers: {
+                    'Content-Type':'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+                .then(res => {
+                    console.log(res)
+                    if(res.ok){
+                        loginSpan.innerText = 'Usuario registrado... Entrando...'
+                        loginSpan.style.color = 'green'
+                        setTimeout(()=> {
+                            window.location.href = '/protected'
+                        }, 2000)
+                    } else {
+                        loginSpan.innerText = 'Error al registrar usuario'
+                        loginSpan.style.color = 'red'
+                    }
+                })
+        })
+
+        logoutButton?.addEventListener('click', e =>{
+            e.preventDefault()
+            fetch('/logout', {
+                method:'POST',
+                headers: {
+                    'Content-Type':'application/json'
+                }
+            })
+                .then(res => {
+                    console.log(res)
+                    window.location.href = '/'
+                })
+        })
+    </script>
+</body>
+</html>
