@@ -15,7 +15,17 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.get('/', (req,res) => {
-    res.render('index')
+    const token = req.cookies.access_token
+    if (!token){
+        res.render('index')
+    }
+    
+    try{
+        const data = jwt.verify(token, SECRET_JWT_KEY)
+        res.render('index', data)   // date es el payload --> { _id, username }
+    } catch(error){
+        res.render('index')
+    }
 })
 
 // Este bloque de codigo devuelve al username de jimena como Administradora
@@ -60,8 +70,18 @@ app.post('/register', async (req, res) => {
 app.post('/logout', (req, res) => {})
 
 app.get('/protected', (req, res) => {
+    const token = req.cookies.access_token
+    if (!token){
+        return res.status(403).send('Access not authorized')
+    }
+
+    try{
+        const data = jwt.verify(token, SECRET_JWT_KEY)
+        res.render('protected', data)   // date es el payload --> { _id, username }
+    } catch(error){
+        return res.status(403).send('Access not authorized')
+    }
     // TODO: if sesion del usuario
-    res.render('protected', {username: 'jimenaa'})
     // TODO: else 401
 })
 
