@@ -44,6 +44,14 @@
                     </form>
                 </div>
                 <% } %>
+                
+                <!-- Agregar un selector simple -->
+                <label>Método</label>
+                <select id="login-method">
+                    <option value="cookie">Cookie (Sesion)</option>
+                    <option value="jwt">JWT</option>
+                </select>
+
     </div>
     <script>
         const $ = el => document.querySelector(el)
@@ -60,13 +68,14 @@
 
             const username = $('#login-username').value
             const password = $('#login-password').value
+            const method = $('#login-method').value
 
             fetch('/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type':'application/json'
-                },
-                body: JSON.stringify({ username, password })
+                }, credentials: 'include',
+                body: JSON.stringify({ username, password, method })
             })
                 .then(res => {
                     if(res.ok) {
@@ -120,7 +129,8 @@
                 method:'POST',
                 headers: {
                     'Content-Type':'application/json'
-                }
+                },
+                credentials: 'include'
             })
                 .then(res => {
                     console.log(res)
