@@ -73,10 +73,12 @@ app.post('/register', async (req, res) => {
 
     try {
         const id = await UserRepository.create( { username, password });
-        res.send( { id });
+        return res.status(201).json({ id })
     }catch(error){
         // NORMALMENTE NO ES LO IDEAL MANDAR EL ERROR DEL REPOSITORIO (porque puede tener informacion por de mas)
-        res.status(400).send(error.message)
+        console.error('[REGISTER] error:', err)
+        const code = /UNIQUE/.test(String(err)) ? 409 : 400
+        return res.status(code).send(err.message)
     }
 })
 
