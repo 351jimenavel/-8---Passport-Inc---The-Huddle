@@ -7,12 +7,12 @@ import helmet from 'helmet';
 import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from './config.js';
 import { UserRepository } from './src/models/user.js';
 import { randomBytes, randomUUID } from 'node:crypto';
+import db from './src/db.js'
 
 // helper simple
 function generarCSRF() { return randomBytes(24).toString('hex') }
 
 // obtener rol del user (de la DB)
-import db from './src/db.js'
 function obtenerRol(userId) {
     const row = db.prepare('SELECT role FROM users WHERE id = ?').get(userId);
     return row?.role || 'USER';
@@ -24,6 +24,7 @@ app.set('view engine', 'ejs');
 app.use(express.json())
 app.use(cookieParser())
 app.use(helmet()) // cabeceras de seguridad
+app.use(express.static('public'))
 
 // ----- Rama Cookie (sesion real) -----
 app.use(session({
@@ -48,7 +49,7 @@ app.use((req, res, next) => {
         try {
             const data = jwt.verify(token, SECRET_JWT_KEY);
             req.sessionJwtUser = data;  // { id, username, role }
-        } catch(error){
+        } catch{
             req.sessionJwtUser = null;
         }
     }
@@ -69,16 +70,14 @@ app.get('/', (req,res) => {
 // Auth endpoints
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
-    console.log(req.body);
-
     try {
         const id = await UserRepository.create( { username, password });
         return res.status(201).json({ id })
     }catch(error){
         // NORMALMENTE NO ES LO IDEAL MANDAR EL ERROR DEL REPOSITORIO (porque puede tener informacion por de mas)
-        console.error('[REGISTER] error:', err)
-        const code = /UNIQUE/.test(String(err)) ? 409 : 400
-        return res.status(code).send(err.message)
+        console.error('[REGISTER] error:', error)
+        const code = /UNIQUE/.test(String(error)) ? 409 : 400
+        return res.status(code).send(error.message)
     }
 })
 
@@ -89,7 +88,7 @@ app.post('/login', async (req, res) => {
         if (method === 'cookie'){
             // Rama A: sesion
             req.session.user = { id: user._id, username: user.username, role: user.role };
-            csrfToken = generarCSRF();             // doble submit token
+            const csrfToken = generarCSRF();             // doble submit token
             req.session.csrfToken = csrfToken;
             res.status(200).send( { ok: true, method:'cookie', csrfToken });
         } 
@@ -114,6 +113,7 @@ app.post('/login', async (req, res) => {
         }
         return res.status(400).send('Invalid method');
     }catch(error){
+        console.error('[LOGIN] error:', error);
         // NORMALMENTE NO ES LO IDEAL MANDAR EL ERROR DEL REPOSITORIO (porque puede tener informacion por de mas)
         return res.status(401).send(error.message);
     }
@@ -128,9 +128,9 @@ app.post('/token/refresh', (req, res) => {
     try{
         const payload = jwt.verify(refresh, SECRET_JWT_KEY);
         const role = obtenerRol(payload.sub);
-        const access = jwt.sign({ sub: payload.sub, role}, SECRET_JWT_KEY, { expiresIn: '15min'});
+        const access = jwt.sign({ sub: payload.sub, role}, SECRET_JWT_KEY, { expiresIn: '15m'});
         return res.status(200).send({accessToken: access, exp:900});
-    } catch(error){
+    } catch{
         return res.status(401).send('Not authorized');
     }
 })
@@ -143,7 +143,6 @@ app.post('/logout', (req, res) => {
             res.clearCookie('connect.sid', { httpOnly: true, sameSite: 'lax', secure: false });
             return res.status(200).send({ message: 'logout session ok' });
         });
-        return; // importante
     }
 
     // si se uso refresh (rama B):
