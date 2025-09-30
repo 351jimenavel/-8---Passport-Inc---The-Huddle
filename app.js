@@ -59,20 +59,9 @@ app.use((req, res, next) => {
 })
 
 app.get('/', (req,res) => {
-    const { user } = req.session
-    res.render('index', user)
-
-    // const token = req.cookies.access_token
-    // if (!token){
-    //     res.render('index')
-    // }
-    
-    // try{
-    //     const data = jwt.verify(token, SECRET_JWT_KEY)
-    //     res.render('index', data)   // date es el payload --> { _id, username }
-    // } catch(error){
-    //     res.render('index')
-    // }
+    // si hay sesion cookie, usarla; si no, probar JWT; si no, vacio
+    const { user } = req.session?.user ?? req.sessionJwtUser ?? null
+    res.render('index', user ?? {})
 })
 
 // Este bloque de codigo devuelve al username de jimena como Administradora
