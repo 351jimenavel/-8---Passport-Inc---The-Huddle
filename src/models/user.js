@@ -12,14 +12,15 @@ export class UserRepository {
         const existsUser = db.prepare('SELECT 1 FROM users WHERE username = ?').get(username)
         if (existsUser) throw new Error('username already exists')
         
-        const id = crypto.randomUUID();
+        const id = randomUUID();
         const hashedPassword = await bcrypt.hash(password, 10)  
         // hashSync bloquea el thread principal
         // el numero es el salt_rounds (averiguar! el numero de vueltas que le va a dar)
-        db.prepare(`
+        const info = db.prepare(`
         INSERT INTO users (id, username, password_hash, role)
         VALUES (?, ?, ?, 'USER')
-    `).run(id, username, hashedPassword)
+        `).run(id, username, hashedPassword)
+        console.log('[DB] insert users changes=', info.changes) // debería ser 1
 
         return id
     }
