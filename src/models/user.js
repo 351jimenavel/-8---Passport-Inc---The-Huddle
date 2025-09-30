@@ -1,17 +1,7 @@
-// const DBLocal = require('db-local');
-// ESM (recomendado)
-import DBLocal from 'db-local';
-import { createHash, randomBytes, createHmac, pbkdf2 } from 'node:crypto';
+// Reescribir UserRepositoru con SQLite
+import db from '../db.js'
+import { randomUUID } from 'node:crypto'
 import bcrypt from 'bcrypt';
-
-const { Schema } = new DBLocal({ path: './db'});
-
-// Estructura con contrato similar para poder migrar a otras dbs
-const User = Schema('User',{
-    _id: { type: String, require: true},
-    username: { type: String, require: true},
-    password: { type: String, require: true}
-})
 
 export class UserRepository {
     static async create ( {username, password}) {
@@ -19,19 +9,17 @@ export class UserRepository {
         Validation.password(password)
 
         // 2. Asegurarse que el username no existe
-        const user = User.findOne({ username })
-        if (user) throw new Error('username already exists')
+        const existsUser = db.prepare('SELECT 1 FROM users WHERE username = ?').get(username)
+        if (existsUser) throw new Error('username already exists')
         
         const id = crypto.randomUUID();
-        const hashedPassword = await bcrypt.hash(password, 5)  
+        const hashedPassword = await bcrypt.hash(password, 10)  
         // hashSync bloquea el thread principal
         // el numero es el salt_rounds (averiguar! el numero de vueltas que le va a dar)
-
-        User.create({
-            _id: id,
-            username,
-            password:hashedPassword
-        }).save()
+        db.prepare(`
+        INSERT INTO users (id, username, password_hash, role)
+        VALUES (?, ?, ?, 'USER')
+    `).run(id, username, hashedPassword)
 
         return id
     }
@@ -39,13 +27,26 @@ export class UserRepository {
         Validation.username(username)
         Validation.password(password)
 
-        const user = User.findOne( { username })
-        if (!user) throw new Error('username does not exist')
-
-        const isValid = await bcrypt.compare(password, user.password)
+        const row = db.prepare(`
+        SELECT id, username, password_hash, role
+        FROM users WHERE username = ?
+    `).get(username)
+        if (!row) throw new Error('username does not exist')
+        const isValid = await bcrypt.compare(password, row.password_hash)
         if (!isValid) throw new Error('password is invalid')
-        const { password: _, ...publicUser} = user
-        return publicUser
+        return { _id: row.id, username: row.username, role: row.role }
+    }
+
+    static listAll(){
+        const rows = db.prepare(`
+        SELECT id, username, role, created_at FROM users ORDER BY created_at DESC
+    `).all()
+        return rows.map(r => ({ _id: r.id, username: r.username, role: r.role, createdAt: r.created_at }))
+    }
+
+    static deleteById(id){
+        db.prepare('DELETE FROM users WHERE id = ?').run(id)
+        return
     }
 }
 
