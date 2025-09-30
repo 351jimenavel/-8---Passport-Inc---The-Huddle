@@ -1,20 +1,50 @@
 // Configuracion basica
-//const express = require('express');
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
-import { PORT, SECRET_JWT_KEY } from './config.js';
-//const jwt = require('jsonwebtoken');
+import helmet from 'helmet';
+import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from './config.js';
 import { UserRepository } from './src/models/user.js';
-//const { UserRepository } = require('./src/models/user');
+
 
 // Inicializar app
 const app = express()
 app.set('view engine', 'ejs');
 app.use(express.json())
 app.use(cookieParser())
+app.use(helmet()) // cabeceras de seguridad
 
-// Creamos middleware
+// ----- Rama Cookie (sesion real) -----
+app.use(session({
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false,
+        maxAge: 60 * 60 * 1000
+    }
+}))
+
+// ----- Autenticacion por JWT en cada request (para vistas)
+//// Middleware Leer JWT desde Cookie
+app.use((req, res, next) => {
+    const token = req.cookies.access_token;
+    req.sessionJwtUser = null;
+
+    if (token){
+        try {
+            const data = jwt.verify(token, SECRET_JWT_KEY);
+            req.sessionJwtUser = data;  // { id, username, role }
+        } catch(error){
+            req.sessionJwtUser = null;
+        }
+    }
+    next();     // seguir a la siguiente ruta o middleware
+})
+
+// Middleware - Rama Cookie
 app.use((req, res, next) => {
     const token = req.cookies.access_token;
     req.session = { user: null };
