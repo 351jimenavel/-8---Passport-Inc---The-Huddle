@@ -43,100 +43,15 @@
                         <span id="register-span">&nbsp;</span>
                     </form>
                 </div>
-                <% } %>
-                
                 <!-- Agregar un selector simple -->
                 <label>Método</label>
                 <select id="login-method">
                     <option value="cookie">Cookie (Sesion)</option>
                     <option value="jwt">JWT</option>
                 </select>
+                <% } %>
 
     </div>
-    <script>
-        const $ = el => document.querySelector(el)
-
-        const loginForm = $('#login-form')
-        const loginSpan = $('#login-span')
-
-        const registerForm = $('#register-form')
-        const registerSpan = $('#register-span')
-        const logoutButton = $('#close-session')
-
-        loginForm?.addEventListener('submit', e => {
-            e.preventDefault()
-
-            const username = $('#login-username').value
-            const password = $('#login-password').value
-            const method = $('#login-method').value
-
-            fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type':'application/json'
-                }, credentials: 'include',
-                body: JSON.stringify({ username, password, method })
-            })
-                .then(res => {
-                    if(res.ok) {
-                        loginSpan.innerText = 'Sesion iniciada... Entrando...'
-                        loginSpan.style.color = 'green'
-                        setTimeout(()=> {
-                            window.location.href = '/protected'
-                        }, 2000)
-                    } else {
-                        loginSpan.innerText = 'Error al iniciar sesion'
-                        loginSpan.style.color = 'red'
-                    }
-                })
-        })
-        registerForm?.addEventListener('submit', e => {
-            e.preventDefault()
-            const username = $('#register-username').value
-            const password = $('#register-password').value
-            const confirmPassword = $('#register-confirm-password').value
-
-            if (password !== confirmPassword){
-                alert('Passwords do not match')
-                return
-            }
-
-            fetch('/register', {
-                method:'POST',
-                headers: {
-                    'Content-Type':'application/json'
-                },
-                body: JSON.stringify({ username, password })
-            })
-                .then(res => {
-                    console.log(res)
-                    if(res.ok){
-                        loginSpan.innerText = 'Usuario registrado... Entrando...'
-                        loginSpan.style.color = 'green'
-                        setTimeout(()=> {
-                            window.location.href = '/protected'
-                        }, 2000)
-                    } else {
-                        loginSpan.innerText = 'Error al registrar usuario'
-                        loginSpan.style.color = 'red'
-                    }
-                })
-        })
-
-        logoutButton?.addEventListener('click', e =>{
-            e.preventDefault()
-            fetch('/logout', {
-                method:'POST',
-                headers: {
-                    'Content-Type':'application/json'
-                },
-                credentials: 'include'
-            })
-                .then(res => {
-                    console.log(res)
-                    window.location.href = '/'
-                })
-        })
-    </script>
+    <script src="/js/app.js" defer></script>
 </body>
 </html>
