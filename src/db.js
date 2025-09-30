@@ -1,6 +1,13 @@
-import Database from "better-sqlite3";
+import Database from 'better-sqlite3'
+import { fileURLToPath } from 'url'
+import path from 'path'
 
-const db = new Database('users.db', { fileMustExist: false })   // crea si no existe
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const DB_PATH = path.join(__dirname, '..', 'users.db')  // guarda el .db siempre en la raíz del proyecto
+
+console.log('[DB] usando', DB_PATH)
+
+const db = new Database(DB_PATH, { fileMustExist: false })
 
 // PRAGMAS recomendados
 db.pragma('journal_mode = WAL')
