@@ -91,9 +91,7 @@ app.post('/login', async (req, res) => {
             const csrfToken = generarCSRF();             // doble submit token
             req.session.csrfToken = csrfToken;
             res.status(200).send( { ok: true, method:'cookie', csrfToken });
-        } 
-        
-        if (method === 'jwt'){
+        } else if (method === 'jwt'){
             // Rama B: JWT (access corto, refresh en cookie)
             const access = jwt.sign({ sub: user._id, username: user.username, role: user.role }, 
                 SECRET_JWT_KEY, 
@@ -110,8 +108,9 @@ app.post('/login', async (req, res) => {
             secure: false,      // 
             })
             return res.status(200).send( { ok: true, method:'jwt', accessToken: access, exp:900 });
+        } else {
+            return res.status(400).send('Invalid method');
         }
-        return res.status(400).send('Invalid method');
     }catch(error){
         console.error('[LOGIN] error:', error);
         // NORMALMENTE NO ES LO IDEAL MANDAR EL ERROR DEL REPOSITORIO (porque puede tener informacion por de mas)
@@ -136,20 +135,29 @@ app.post('/token/refresh', (req, res) => {
 })
 
 app.post('/logout', (req, res) => {
+    const cookieOpts = { httpOnly: true, sameSite: 'lax', secure: false };
+
+    const finish = () => {
+        // limpiamos ambas por si acaso (sesión y refresh)
+        // nombre por defecto de express-session: 'connect.sid'
+        res.clearCookie('connect.sid', cookieOpts);
+        res.clearCookie('refresh_token', cookieOpts);
+        return res.status(204).end();          // 204 = No Content (sin body)
+    };
+
     // si se uso cookie-session (rama A):
     if (req.session?.user){
         req.session.destroy(()=> {
-            // nombre por defecto de express-session: 'connect.sid'
-            res.clearCookie('connect.sid', { httpOnly: true, sameSite: 'lax', secure: false });
-            return res.status(200).send({ message: 'logout session ok' });
+            if (err){
+                console.error('[LOGOUT] destroy error:', err);
+                return res.status(500).json({ message: 'logout failed' });
+            }
+            return finish(); // <- importante: UN solo send
         });
+    } else {
+    // Rama JWT (no hay sesion cookie; igual limpiamos refresh)
+        return finish();   // <- importante: return
     }
-
-    // si se uso refresh (rama B):
-    res.clearCookie('refresh_token', { httpOnly: true,   // la cookie solo se puede acceder en el servidor
-            sameSite: 'lax',    // 
-            secure: false})
-    return res.json( { message: 'logout jwt ok '});
 })
 
 app.get('/protected', (req, res) => {
