@@ -1,7 +1,7 @@
 import db from '../src/db.js'
 import { randomUUID } from 'node:crypto'
 import bcrypt from 'bcrypt';
-import '../config.js';
+import {ADMIN_USER, ADMIN_SEED_PASSWORD} from '../config.js';
 
 const ADMIN_PASS = ADMIN_SEED_PASSWORD;
 
@@ -20,5 +20,5 @@ const ADMIN_PASS = ADMIN_SEED_PASSWORD;
     db.prepare(`INSERT INTO users (id, username, password_hash, role) VALUES (?, ?, ?, 'ADMIN')`).run(id, ADMIN_USER, hash);
     
     console.log('Admin creado');
-    
+
 })();
