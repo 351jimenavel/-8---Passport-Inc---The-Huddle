@@ -147,7 +147,7 @@ app.post('/logout', (req, res) => {
 
     // si se uso cookie-session (rama A):
     if (req.session?.user){
-        req.session.destroy(()=> {
+        req.session.destroy( err => {
             if (err){
                 console.error('[LOGOUT] destroy error:', err);
                 return res.status(500).json({ message: 'logout failed' });
@@ -158,7 +158,7 @@ app.post('/logout', (req, res) => {
     // Rama JWT (no hay sesion cookie; igual limpiamos refresh)
         return finish();   // <- importante: return
     }
-})
+});
 
 app.get('/protected', (req, res) => {
     const user = req.session?.user || req.sessionJwtUser;
