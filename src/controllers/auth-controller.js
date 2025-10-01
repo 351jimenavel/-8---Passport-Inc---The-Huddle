@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
-import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from './config.js';
-import { UserRepository } from './src/models/user.js';
+import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from '../../config.js';
+import { UserRepository } from '../models/user.js';
 import { randomBytes, randomUUID } from 'node:crypto';
-import db from './src/db.js'
+import db from '../db.js'
 
 // helper simple
 function generarCSRF() { return randomBytes(24).toString('hex') }
