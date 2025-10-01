@@ -1,13 +1,14 @@
 import jwt from 'jsonwebtoken';
-import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from './config.js';
+import { SECRET_JWT_KEY} from '../../config.js';
 
 function verifyJWT(req, res, next){
-    const auth = req.headers['authorization'] || '';
-    const token = auth.replaces('Bearer', '');
+    const auth = req.headers.authorization || '';
 
-    if (!token){
+    if (!auth.startsWith('Bearer ')){
         return res.status(401).send('Unauthorized');
     }
+
+    const token = auth.slice(7).trim(); // corta "Bearer "
 
     try{
         const payload = jwt.verify(token, SECRET_JWT_KEY);  // { sub, role, username }
