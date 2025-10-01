@@ -7,51 +7,38 @@
 </head>
 <body>
     <div class="container">
-        <% if (typeof username !== 'undefined'){ %>
-            <div class="form-container">
-                <h2> Hola <%= username %>! </h2>
-                <p>Estas en el panel de administracion</p>
-                <button id="close-session">Cerrar sesion</button>
-            </div>
-        <% } %>
-            <% if (typeof username === 'undefined'){ %>
-                <div class="form-container">
-                    <form id="login-form">
-                        <h2> Login </h2>
-                        <label for="login-username">Username</label>
-                        <input type="text" id="login-username" name="username" required>
+    <% if (typeof username !== 'undefined'){ %>
+        <h2>Hola <%= username %>!</h2>
+        <button id="close-session">Cerrar sesión</button>
+    <% } %>
 
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" name="password" required>
-                        <button type="submit">Login</button>
-                        <span id="login-span">&nbsp;</span>
-                    </form>
-                </div>
-                <div class="form-container">
-                    <form id="register-form">
-                        <h2>Register</h2>
-                        <label for="register-username">Username</label>
-                        <input type="text" id="register-username" name="username" required>
-                        
-                        <label for="register-password">Password</label>
-                        <input type="password" id="register-password" name="password" required>
+    <% if (typeof username === 'undefined'){ %>
+        <!-- Login -->
+        <form id="login-form">
+        <h2>Login</h2>
+        <input id="login-username" required>
+        <input id="login-password" type="password" required>
+        <label for="login-method">Método</label>
+        <select id="login-method">
+            <option value="cookie">Cookie (Sesión)</option>
+            <option value="jwt">JWT</option>
+        </select>
+        <button type="submit">Login</button>
+        <span id="login-span">&nbsp;</span>
+        </form>
 
-                        <label for="register-confirm-password">Confirm Password</label>
-                        <input type="password" id="register-confirm-password" name="confirm-password" required>
-
-                        <button type="submit">Register</button>
-                        <span id="register-span">&nbsp;</span>
-                    </form>
-                </div>
-                <!-- Agregar un selector simple -->
-                <label>Método</label>
-                <select id="login-method">
-                    <option value="cookie">Cookie (Sesion)</option>
-                    <option value="jwt">JWT</option>
-                </select>
-                <% } %>
-
+        <!-- Register -->
+        <form id="register-form">
+        <h2>Register</h2>
+        <input id="register-username" required>
+        <input id="register-password" type="password" required>
+        <input id="register-confirm-password" type="password" required>
+        <button type="submit">Register</button>
+        <span id="register-span">&nbsp;</span>
+        </form>
+    <% } %>
     </div>
-    <script src="/js/app.js" defer></script>
+<script src="/js/app.js" defer></script>
+
 </body>
 </html>
