@@ -8,8 +8,8 @@ import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from './config.js';
 import { UserRepository } from './src/models/user.js';
 import { randomBytes, randomUUID } from 'node:crypto';
 
-import authRoutes from './src/routes/auth.routes'
-import adminRoutesCookie from './src/routes/admin.routes'           // versión cookie
+import authRoutes from './src/routes/auth.js'
+import adminRoutesCookie from './src/routes/admin.js'           // versión cookie
 // import adminRoutesJWT from './src/routes/admin.routes.jwt'       // si prefieres JWT
 
 // Inicializar app
