@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from './config.js';
 import { UserRepository } from './src/models/user.js';
 import { randomBytes, randomUUID } from 'node:crypto';
+import verifyJWT from './src/middlewares/verifyJWT.js';
 
 import authRoutes from './src/routes/auth.js'
 import adminRoutesCookie from './src/routes/admin.js'           // versión cookie
@@ -35,7 +36,7 @@ app.use(session({
 
 app.get('/', (req,res) => {
     // si hay sesion cookie, usarla; si no, probar JWT; si no, vacio
-    const user = req.session?.user || req.sessionJwtUser || null;
+    const user = req.session?.user || null;
     res.render('index', user ?? {});
 })
 
@@ -45,7 +46,7 @@ app.get('/', (req,res) => {
 // })
 
 app.get('/protected', (req, res) => {
-    const user = req.session?.user || req.sessionJwtUser;
+    const user = req.session?.user || null;
     if (!user){
         return res.status(403).send('Access not authorized');
     }
@@ -55,6 +56,12 @@ app.get('/protected', (req, res) => {
 // Montar rutas modulares
 app.use(authRoutes);        // /register, /login, /logout, /token/refresh
 app.use(adminRoutesCookie); // /admin/users (requiere rol ADMIN)
+
+app.get('/jwt', (req, res) => res.render('jwt'));
+
+app.get('/api/me', verifyJWT, (req, res) => {
+    return res.json({ id: req.user.id, username: req.user.username, role: req.user.role });
+});
 
 // Levantar servidor
 app.listen(PORT, () => {
