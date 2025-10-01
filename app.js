@@ -15,6 +15,7 @@ import adminRoutesCookie from './src/routes/admin.js'           // versión cook
 
 // Inicializar app
 const app = express();
+app.set('json spaces', 2);  // Esto hace que todos los res.json() se impriman con 2 espacios de indentación.
 app.set('view engine', 'ejs');
 app.use(express.json())
 app.use(cookieParser())
