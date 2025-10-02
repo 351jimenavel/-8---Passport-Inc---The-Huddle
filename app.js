@@ -1,13 +1,11 @@
 // Configuracion basica
 import express from 'express';
 import session from 'express-session';
-import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from './config.js';
-import { UserRepository } from './src/models/user.js';
-import { randomBytes, randomUUID } from 'node:crypto';
 import verifyJWT from './src/middlewares/verifyJWT.js';
+import SQLiteStoreFactory from 'connect-sqlite3';
 
 import authRoutes from './src/routes/auth.js'
 import adminRoutesCookie from './src/routes/admin.js'           // versión cookie
@@ -22,8 +20,16 @@ app.use(cookieParser())
 app.use(helmet()) // cabeceras de seguridad
 app.use(express.static('public'))
 
+const SQLiteStore = SQLiteStoreFactory(session);
+
 // ----- Rama Cookie (sesion real) -----
 app.use(session({
+    store: new SQLiteStore({
+        db: 'sessions.sqlite',
+        dir:'./',
+        ttl: 60 * 60, // 1h (en segundos)
+    }),
+    name: 'sid',
     secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
@@ -33,7 +39,7 @@ app.use(session({
         secure: false,
         maxAge: 60 * 60 * 1000
     }
-}))
+}));
 
 app.get('/', (req,res) => {
     // si hay sesion cookie, usarla; si no, probar JWT; si no, vacio
