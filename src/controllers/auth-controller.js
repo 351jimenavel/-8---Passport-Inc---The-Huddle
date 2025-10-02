@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from '../../config.js';
+import { SECRET_JWT_KEY } from '../../config.js';
 import { UserRepository } from '../models/user.js';
 import { randomBytes, randomUUID } from 'node:crypto';
 import db from '../db.js'
@@ -32,11 +32,20 @@ export const login = async (req, res) => {
         const user = await UserRepository.login( { username, password });
         if (method === 'cookie'){
             // Rama A: sesion
+            // >>> prevenir session fixation y refrescar CSRF <<<
+            return req.session.regenerate(err => {
+                if (err) {
+                console.error('[LOGIN] regenerate error:', err);
+                return res.status(500).send('Login failed');
+            }
+
             req.session.user = { id: user._id, username: user.username, role: user.role };
             const csrfToken = generarCSRF();             // doble submit token
             req.session.csrfToken = csrfToken;
-            res.status(200).send( { ok: true, method:'cookie', csrfToken });
-        } else if (method === 'jwt'){
+            return res.status(200).send( { ok: true, method:'cookie', csrfToken });
+        });
+        }
+        if (method === 'jwt'){
             // Rama B: JWT (access corto, refresh en cookie)
             const access = jwt.sign({ sub: user._id, username: user.username, role: user.role }, 
                 SECRET_JWT_KEY, 
@@ -50,12 +59,12 @@ export const login = async (req, res) => {
                 })
             res.cookie('refresh_token', refresh, { httpOnly: true,   // la cookie solo se puede acceder en el servidor
             sameSite: 'lax',    // 
-            secure: false,      // 
+            secure: false,
+            path: '/',
             })
             return res.status(200).send( { ok: true, method:'jwt', accessToken: access, exp:900 });
-        } else {
-            return res.status(400).send('Invalid method');
-        }
+        } 
+        return res.status(400).send('Invalid method');
     }catch(error){
         console.error('[LOGIN] error:', error);
         // NORMALMENTE NO ES LO IDEAL MANDAR EL ERROR DEL REPOSITORIO (porque puede tener informacion por de mas)
