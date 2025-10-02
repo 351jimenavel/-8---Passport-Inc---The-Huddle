@@ -42,7 +42,7 @@ export const login = async (req, res) => {
             req.session.user = { id: user._id, username: user.username, role: user.role };
             const csrfToken = generarCSRF();             // doble submit token
             req.session.csrfToken = csrfToken;
-            return res.status(200).send( { ok: true, method:'cookie', csrfToken });
+            return res.status(200).send( { ok: true, method:'cookie', csrfToken: req.session.csrfToken });
         });
         }
         if (method === 'jwt'){
@@ -88,27 +88,9 @@ export const refresh = (req, res) => {
 }
 
 export const logout = (req, res) => {
-    const cookieOpts = { httpOnly: true, sameSite: 'lax', secure: false };
-
-    const finish = () => {
-        // limpiamos ambas por si acaso (sesión y refresh)
-        // nombre por defecto de express-session: 'connect.sid'
-        res.clearCookie('connect.sid', cookieOpts);
-        res.clearCookie('refresh_token', cookieOpts);
-        return res.status(204).end();          // 204 = No Content (sin body)
-    };
-
-    // si se uso cookie-session (rama A):
-    if (req.session?.user){
-        req.session.destroy( err => {
-            if (err){
-                console.error('[LOGOUT] destroy error:', err);
-                return res.status(500).json({ message: 'logout failed' });
-            }
-            return finish(); // <- importante: UN solo send
-        });
-    } else {
-    // Rama JWT (no hay sesion cookie; igual limpiamos refresh)
-        return finish();   // <- importante: return
-    }
-}
+    req.session.destroy(err => {
+        if (err) return res.status(500).json({ message: 'logout failed' });
+        res.clearCookie('sid');
+        return res.status(204).end();
+    });
+};
