@@ -1,0 +1,128 @@
+/* Fuente base */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* Reset general */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Fondo y centrado */
+body {
+    font-family: 'Roboto', sans-serif;
+    background: #f3f4f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+}
+
+/* Contenedor principal */
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch; /* 👈 los iguala en altura */
+    gap: 3rem; /* 👈 más separación */
+    width: 90%;
+    max-width: 900px;
+    flex-wrap: wrap; /* si la pantalla es chica, se apilan */
+}
+
+/* Tarjeta */
+.form-container {
+    background: white;
+    border-radius: 10px;
+    padding: 25px 30px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    flex: 1 1 350px; /* 👈 igual ancho flexible */
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 👈 balancea contenido interno */
+    min-height: 400px; /* 👈 garantiza mismo alto */
+}
+
+/* Titulos */
+h2 {
+    text-align: center;
+    color: #222;
+    margin-bottom: 1rem;
+}
+
+/* Labels e inputs */
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+
+/* Botones */
+button {
+    width: 100%;
+    background-color: #2563eb;
+    color: white;
+    margin-top: 20px;
+    border: none;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background-color: #1d4ed8;
+}
+
+/* Select */
+select {
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 11px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* Mensajes */
+span {
+    display: block;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+/* Botón de cerrar sesión */
+#close-session {
+    background-color: #ef4444;
+}
+
+#close-session:hover {
+    background-color: #dc2626;
+}
+
+/* Adaptabilidad (pantallas chicas) */
+@media (max-width: 800px) {
+    .container {
+    flex-direction: column;
+    align-items: center;
+    }
+
+    .form-container {
+    max-width: 350px;
+    width: 90%;
+    }
+}
