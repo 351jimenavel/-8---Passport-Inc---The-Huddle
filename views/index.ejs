@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login & Registration Forms</title>
+    <link rel="stylesheet" href="/css/style.css">
+
 </head>
 <body>
     <div class="container">
@@ -16,7 +18,9 @@
         <!-- Login -->
         <form id="login-form">
         <h2>Login</h2>
-        <input id="login-username" required>
+        <label for="login-method">Gmail</label>
+        <input id="login-username" type="text" required>
+        <label for="login-method">Contrasenha</label>
         <input id="login-password" type="password" required>
         <label for="login-method">Método</label>
         <select id="login-method">
@@ -30,8 +34,11 @@
         <!-- Register -->
         <form id="register-form">
         <h2>Register</h2>
-        <input id="register-username" required>
+        <label for="login-method">Gmail</label>
+        <input id="register-username" type="text" required>
+        <label for="login-method">Contrasenha</label>
         <input id="register-password" type="password" required>
+        <label for="login-method">Confirmar contrasenha</label>
         <input id="register-confirm-password" type="password" required>
         <button type="submit">Register</button>
         <span id="register-span">&nbsp;</span>
