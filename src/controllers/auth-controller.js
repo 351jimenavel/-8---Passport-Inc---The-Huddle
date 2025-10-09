@@ -89,8 +89,20 @@ export const refresh = (req, res) => {
     }
     try{
         const payload = jwt.verify(refresh, SECRET_JWT_KEY);
-        const role = obtenerRol(payload.sub);
-        const access = jwt.sign({ sub: payload.sub, role}, SECRET_JWT_KEY, { expiresIn: '15m'});
+
+        // Validar que realmente sea un refresh token
+        if (payload.type !== 'refresh') {
+            return res.status(401).send('Not authorized');
+        }
+
+        // Cargar usuario desde DB (username y role) usando sub
+        const userRow = obtenerUsuarioById(payload.sub);
+        if (!userRow) {
+            return res.status(401).send('Not authorized');
+        }
+
+        // Firmar acces con las mismas claims que en login
+        const access = jwt.sign({ sub: payload.sub, username: userRow.username}, SECRET_JWT_KEY, { expiresIn: '15m'});
         return res.status(200).send({accessToken: access, exp:900});
     } catch{
         return res.status(401).send('Not authorized');
