@@ -66,10 +66,6 @@ app.use(adminRoutesCookie); // /admin/users (requiere rol ADMIN)
 
 app.get('/jwt', (req, res) => res.render('jwt'));
 
-app.get('/api/me', verifyJWT, (req, res) => {
-    return res.json({ id: req.user.id, username: req.user.username, role: req.user.role });
-});
-
 // Levantar servidor
 app.listen(PORT, () => {
     console.log("Servidor corriendo en puerto", `http://localhost:${PORT}`);
