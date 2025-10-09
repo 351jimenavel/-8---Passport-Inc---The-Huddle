@@ -4,7 +4,6 @@ import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { PORT, SECRET_JWT_KEY, SESSION_SECRET } from './config.js';
-import verifyJWT from './src/middlewares/verifyJWT.js';
 import SQLiteStoreFactory from 'connect-sqlite3';
 
 import authRoutes from './src/routes/auth.js'
