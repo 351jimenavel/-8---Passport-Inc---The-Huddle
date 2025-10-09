@@ -36,6 +36,10 @@ export const login = async (req, res) => {
     const { username, password, method = 'cookie' } = req.body;    // method: 'cookie' | 'jwt', por defecto cookie
     try{
         const user = await UserRepository.login( { username, password });
+        
+        // Unificar id
+        const userId = user.id ?? user._id;
+
         if (method === 'cookie'){
             // Rama A: sesion
             // >>> prevenir session fixation y refrescar CSRF <<<
@@ -45,7 +49,7 @@ export const login = async (req, res) => {
                 return res.status(500).send('Login failed');
             }
 
-            req.session.user = { id: user._id, username: user.username, role: user.role };
+            req.session.user = { id: userId, username: user.username, role: user.role };
             const csrfToken = generarCSRF();             // doble submit token
             req.session.csrfToken = csrfToken;
             return res.status(200).send( { ok: true, method:'cookie', csrfToken: req.session.csrfToken });
@@ -53,12 +57,12 @@ export const login = async (req, res) => {
         }
         if (method === 'jwt'){
             // Rama B: JWT (access corto, refresh en cookie)
-            const access = jwt.sign({ sub: user._id, username: user.username, role: user.role }, 
+            const access = jwt.sign({ sub: userId, username: user.username, role: user.role }, 
                 SECRET_JWT_KEY, 
                 {
                 expiresIn: '15m'
                 })
-            const refresh = jwt.sign({ sub: user._id, jti: randomUUID(), type: 'refresh'}, 
+            const refresh = jwt.sign({ sub: userId, jti: randomUUID(), type: 'refresh'}, 
                 SECRET_JWT_KEY, 
                 {
                 expiresIn: '7d'
