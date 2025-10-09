@@ -20,9 +20,12 @@
   "homepage": "https://github.com/351jimenavel/-8---Passport-Inc---The-Huddle#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.4.1",
+    "connect-sqlite3": "^0.9.16",
     "cookie-parser": "^1.4.7",
     "csurf": "^1.11.0",
     "db-local": "^3.1.0",
+    "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
