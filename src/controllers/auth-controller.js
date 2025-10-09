@@ -13,6 +13,12 @@ function obtenerRol(userId) {
     return row?.role || 'USER';
 }
 
+// obtener username y role por id (DB)
+function obtenerUsuarioById(userId) {
+    return db.prepare('SELECT username, role FROM users WHERE id = ?').get(userId);
+}
+
+
 export const register = async (req, res) => {
     const { username, password } = req.body;
     try {
