@@ -102,7 +102,7 @@ export const refresh = (req, res) => {
         }
 
         // Firmar acces con las mismas claims que en login
-        const access = jwt.sign({ sub: payload.sub, username: userRow.username}, SECRET_JWT_KEY, { expiresIn: '15m'});
+        const access = jwt.sign({ sub: payload.sub, username: userRow.username, role: userRow.role }, SECRET_JWT_KEY, { expiresIn: '15m'});
         return res.status(200).send({accessToken: access, exp:900});
     } catch{
         return res.status(401).send('Not authorized');
