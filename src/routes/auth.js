@@ -11,14 +11,14 @@ function findUserById(id) {
 }
 
 const validateCreds = [
-    body('username')
-        .trim().escape()                 // sanitiza
-        .isLength({ min: 3, max: 100 }).withMessage('username length 3..100'),
+    body('username').isEmail().normalizeEmail(),
     body('password')
         .isString().isLength({ min: 6 }).withMessage('password min 6'),
     (req, res, next) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() })
+        };
         next();
     }
 ];
