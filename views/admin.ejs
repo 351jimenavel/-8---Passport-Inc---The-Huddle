@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Admin</title>
+    <meta name="csrf" content="<%= csrf %>">
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px 10px; }
+        th { background: #f2f4f8; text-align: left; }
+        button { padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; cursor: pointer; }
+        button.danger { background: #fee2e2; border-color: #fecaca; }
+        .muted { color: #64748b; font-size: 0.9em; }
+    </style>
+    </head>
+    <body>
+    <h1>Panel Admin</h1>
+    <p class="muted">Usuarios registrados</p>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Username</th>
+            <th>Rol</th>
+            <th>Creado</th>
+            <th style="width: 1%;">Acción</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% if (users && users.length) { %>
+            <% users.forEach(u => { %>
+            <tr>
+                <td><%= u.username %></td>
+                <td><%= u.role %></td>
+                <td><%= u.createdAt %></td>
+                <td>
+                <% if (u.role !== 'ADMIN') { %>
+                    <button class="del danger" data-id="<%= u._id %>">Eliminar</button>
+                <% } else { %>
+                    <span class="muted">—</span>
+                <% } %>
+                </td>
+            </tr>
+            <% }) %>
+        <% } else { %>
+            <tr><td colspan="4" class="muted">No hay usuarios.</td></tr>
+        <% } %>
+        </tbody>
+    </table>
+
+    <script>
+        (function(){
+        // lee el token CSRF enviado por el servidor
+        const CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
+
+        // engancha los botones Eliminar
+        document.querySelectorAll('button.del').forEach(btn => {
+            btn.addEventListener('click', async () => {
+            const id = btn.dataset.id;
+            if (!id) return;
+            if (!confirm('¿Eliminar este usuario?')) return;
+
+            try {
+                const r = await fetch(`/admin/users/${id}`, {
+                method: 'DELETE',
+                credentials: 'include',                 // manda cookie de sesión
+                headers: { 'X-CSRF-Token': CSRF }       // doble-submit
+                });
+                if (r.ok) {
+                location.reload();
+                } else {
+                const txt = await r.text();
+                alert(`Error ${r.status}: ${txt || 'No se pudo eliminar'}`);
+                }
+            } catch (e) {
+                alert('Error de red');
+            }
+            });
+        });
+        })();
+    </script>
+</body>
+</html>
