@@ -4,6 +4,8 @@ import { UserRepository } from '../models/user.js';
 import { randomBytes, randomUUID } from 'node:crypto';
 import db from '../db.js'
 
+const isProd = process.env.NODE_ENV === 'production';
+
 // helper simple
 function generarCSRF() { return randomBytes(24).toString('hex') }
 
@@ -69,7 +71,7 @@ export const login = async (req, res) => {
                 })
             res.cookie('refresh_token', refresh, { httpOnly: true,   // la cookie solo se puede acceder en el servidor
             sameSite: 'lax',    // 
-            secure: false,
+            secure: isProd,
             path: '/',
             })
             return res.status(200).send( { ok: true, method:'jwt', accessToken: access, exp:900 });
