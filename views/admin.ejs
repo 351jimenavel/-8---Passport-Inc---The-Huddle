@@ -24,7 +24,7 @@
             <th>Username</th>
             <th>Rol</th>
             <th>Creado</th>
-            <th style="width: 1%;">Acción</th>
+            <th style="width:1%;">Acción</th>
         </tr>
         </thead>
         <tbody>
@@ -36,7 +36,7 @@
                 <td><%= u.createdAt %></td>
                 <td>
                 <% if (u.role !== 'ADMIN') { %>
-                    <button class="del danger" data-id="<%= u._id %>">Eliminar</button>
+                    <button class="del danger" type="button" data-id="<%= u._id %>">Eliminar</button>
                 <% } else { %>
                     <span class="muted">—</span>
                 <% } %>
@@ -49,36 +49,9 @@
         </tbody>
     </table>
 
-    <script>
-        (function(){
-        // lee el token CSRF enviado por el servidor
-        const CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
+    <div id="admin-status" class="muted"></div>
 
-        // engancha los botones Eliminar
-        document.querySelectorAll('button.del').forEach(btn => {
-            btn.addEventListener('click', async () => {
-            const id = btn.dataset.id;
-            if (!id) return;
-            if (!confirm('¿Eliminar este usuario?')) return;
-
-            try {
-                const r = await fetch(`/admin/users/${id}`, {
-                method: 'DELETE',
-                credentials: 'include',                 // manda cookie de sesión
-                headers: { 'X-CSRF-Token': CSRF }       // doble-submit
-                });
-                if (r.ok) {
-                location.reload();
-                } else {
-                const txt = await r.text();
-                alert(`Error ${r.status}: ${txt || 'No se pudo eliminar'}`);
-                }
-            } catch (e) {
-                alert('Error de red');
-            }
-            });
-        });
-        })();
-    </script>
+    <!-- Script externo (evita problemas de CSP y asegura que cargue) -->
+    <script src="/js/admin.js" defer></script>
 </body>
 </html>
