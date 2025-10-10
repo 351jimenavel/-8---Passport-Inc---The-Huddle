@@ -8,7 +8,6 @@ import SQLiteStoreFactory from 'connect-sqlite3';
 
 import authRoutes from './src/routes/auth.js'
 import adminRoutesCookie from './src/routes/admin.js'           // versión cookie
-// import adminRoutesJWT from './src/routes/admin.routes.jwt'       // si prefieres JWT
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -21,10 +20,12 @@ app.use(cookieParser())
 app.use(helmet()) // cabeceras de seguridad
 app.use(express.static('public'))
 
+// Crea la clase SQLiteStore pasando la sesion para integrarlos.
 const SQLiteStore = SQLiteStoreFactory(session);
 
 // ----- Rama Cookie (sesion real) -----
 app.use(session({
+    // usa SQLite para persistir sesiones
     store: new SQLiteStore({
         db: 'sessions.sqlite',
         dir:'./',
@@ -32,13 +33,14 @@ app.use(session({
     }),
     name: 'sid',
     secret: SESSION_SECRET,
+    // no reescribir/crear sesiones vacias
     resave: false,
     saveUninitialized: false,
     cookie: {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: isProd,
-        maxAge: 60 * 60 * 1000
+        httpOnly: true,     // JS no puede leer la cookie
+        sameSite: 'lax',    // reduce CSRF
+        secure: isProd,     // solo HTTPS en produccion.
+        maxAge: 60 * 60 * 1000  // 1h
     }
 }));
 
@@ -48,10 +50,6 @@ app.get('/', (req,res) => {
     res.render('index', user ?? {});
 })
 
-// Este bloque de codigo devuelve al username de jimena como Administradora
-// app.get('/', (req,res) => {
-//     res.render('index', {username: "jimena"})
-// })
 
 app.get('/protected', (req, res) => {
     const user = req.session?.user || null;
