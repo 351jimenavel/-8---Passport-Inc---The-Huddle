@@ -6,6 +6,6 @@ import requireRole from '../middlewares/requireRole.js'
 import validateCSRF from '../middlewares/validateCSRF.js'
 
 router.get('/admin/users', requireAuthCookie, requireRole('ADMIN'), listUsers);
-router.get('/admin/users/:id', requireAuthCookie, requireRole('ADMIN'), deleteUser);
+router.delete('/admin/users/:id', requireAuthCookie, requireRole('ADMIN'), validateCSRF ,deleteUser);
 
 export default router
