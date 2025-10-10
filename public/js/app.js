@@ -11,7 +11,44 @@
     const logoutButton = $('#close-session');
     const loginMethodSel = $('#login-method'); // cookie | jwt
 
-  // Para /jwt
+    // Helpers JWT extra
+    function getAccess() { return sessionStorage.getItem('accessToken') || ''; }
+    function setAccess(t) { 
+    if (t) sessionStorage.setItem('accessToken', t);
+    else sessionStorage.removeItem('accessToken');
+    }
+
+    // Llama /token/refresh y guarda el nuevo access
+    async function tryRefresh() {
+    const res = await fetch('/token/refresh', { method: 'POST', credentials: 'include' });
+    if (!res.ok) throw new Error('refresh_unauthorized');
+    const data = await res.json(); // { accessToken, exp }
+    if (!data.accessToken) throw new Error('refresh_no_token');
+    setAccess(data.accessToken);
+    return data.accessToken;
+    }
+
+    // DEBUG: traza al cargar el JS
+    console.log('[jwt-panel] app.js cargado');
+
+    // Seleccion del boton
+    const btnMe = document.getElementById('btnMe');
+
+    // Garantizar que el click se enganche y llame a updateMeFromStorage
+    btnMe?.addEventListener('click', async (e) => {
+    e.preventDefault(); // evita submit si alguna vez queda dentro de un form
+    console.log('[jwt-panel] click en btnMe');
+    try {
+        await updateMeFromStorage();
+    } catch (err) {
+        console.error('[jwt-panel] error en updateMeFromStorage', err);
+    }
+    });
+
+    // --- estado de request para evitar carreras ---
+    let meSeq = 0;
+    
+    // Para /jwt
     const refreshBtn  = $('#refresh-token');
     const refreshSpan = $('#refresh-status');
     const meP         = $('#me');
@@ -21,20 +58,63 @@
         const res = await fetch('/api/me', {
         headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) throw new Error('unauthorized');
-        return res.json();
+        const text = await res.text();  
+        console.log('[jwt-panel] /api/me body:', text);
+        // Intentar parsear JSON - si falla, avisar que llego
+        if (!res.ok) {
+            return { ok: false, data: null, raw: text };
+        }
+
+        let data = null;
+        try { data = JSON.parse(text); } catch { /* deja data = null */ }
+
+        return { ok: true, data, raw: text };
     }
 
     async function updateMeFromStorage() {
-        if (!meP) return;
-        const token = sessionStorage.getItem('accessToken');
-        if (!token) { meP.textContent = 'Sin token'; return; }
+    if (!meP) return;
+    
+    const my = ++meSeq;               // id para esta ejecucion
+    meP.textContent = 'Cargando…';
+    let token = getAccess();
+    if (!token) {
         try {
-        const user = await fetchMe(token);
-        meP.textContent = `Hola ${user.username} (rol: ${user.role})`;
+        token = await tryRefresh();  // bootstrap si no hay token aun
         } catch {
+        if (my !== meSeq) return;     // otra llamada gano
         meP.textContent = 'No autorizado';
+        const meJson = document.getElementById('me-json');
+        if (meJson) meJson.textContent = '—';
+        return;
         }
+    }
+
+    // primer intento
+    let r = await fetchMe(token);
+
+    // si expiro el access o vino mal, intentamos un refresh una sola vez
+    if (!r.ok || !r.data) {
+        try {
+        const t2 = await tryRefresh();
+        r = await fetchMe(t2);
+        } catch {  }
+    }
+
+    if (my !== meSeq) return;          // evita pisar con respuestas viejas
+
+    const meJson = document.getElementById('me-json');
+
+    if (r.ok && r.data && r.data.username) {
+        meP.textContent = `Hola ${r.data.username} (rol: ${r.data.role})`;
+        if (meJson) meJson.textContent = JSON.stringify(r.data, null, 2);
+    } else if (r.ok && !r.data) {
+        // 200 pero body no es JSON valido
+        meP.textContent = 'Respuesta inválida';
+        if (meJson) meJson.textContent = r.raw || '—';
+    } else {
+        meP.textContent = 'No autorizado';
+        if (meJson) meJson.textContent = r.raw || '—';
+    }
     }
 
   // --- LOGIN ---
@@ -144,30 +224,14 @@
 
     // --- REFRESH TOKEN (solo flujo JWT) ---
     refreshBtn?.addEventListener('click', async () => {
-        if (refreshSpan) { refreshSpan.textContent = 'Refrescando...'; refreshSpan.style.color = ''; }
-
-        try {
-        const res = await fetch('/token/refresh', {
-            method: 'POST',
-            credentials: 'include' // manda la cookie refresh_token
-        });
-
-        if (!res.ok) {
-            if (refreshSpan) { refreshSpan.textContent = 'No autorizado'; refreshSpan.style.color = 'red'; }
-            return;
-        }
-
-        const data = await res.json(); // { accessToken, exp }
-        if (data.accessToken) {
-            sessionStorage.setItem('accessToken', data.accessToken);
-            if (refreshSpan) { refreshSpan.textContent = 'Token actualizado ✅'; refreshSpan.style.color = 'green'; }
-            // refrescar el /api/me para mostrar usuario actualizado
-            await updateMeFromStorage();
-        }
-        } catch (e) {
-        console.error('refresh error', e);
-        if (refreshSpan) { refreshSpan.textContent = 'Error de red'; refreshSpan.style.color = 'red'; }
-        }
+    if (refreshSpan) { refreshSpan.textContent = 'Refrescando...'; refreshSpan.style.color = ''; }
+    try {
+        await tryRefresh();
+        if (refreshSpan) { refreshSpan.textContent = 'Token actualizado ✅'; refreshSpan.style.color = 'green'; }
+        await updateMeFromStorage();
+    } catch {
+        if (refreshSpan) { refreshSpan.textContent = 'No autorizado'; refreshSpan.style.color = 'red'; }
+    }
     });
 
     // --- Auto-carga de /api/me al entrar a /jwt ---
