@@ -7,8 +7,11 @@ import validateCSRF from '../middlewares/validateCSRF.js'
 import { UserRepository } from '../models/user.js';
 
 router.get('/admin', requireAuthCookie, requireRole('ADMIN'), (req, res) => {
+    if (!req.session.csrfToken) {
+    req.session.csrfToken = randomBytes(24).toString('hex');
+    }
     const users = UserRepository.listAll();
-    const csrf = req.session?.csrfToken || '';
+    const csrf = req.session?.csrfToken;
     res.render('admin', {users, csrf });
 })
 
