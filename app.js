@@ -10,6 +10,8 @@ import authRoutes from './src/routes/auth.js'
 import adminRoutesCookie from './src/routes/admin.js'           // versión cookie
 // import adminRoutesJWT from './src/routes/admin.routes.jwt'       // si prefieres JWT
 
+const isProd = process.env.NODE_ENV === 'production';
+
 // Inicializar app
 const app = express();
 app.set('json spaces', 2);  // Esto hace que todos los res.json() se impriman con 2 espacios de indentación.
@@ -35,7 +37,7 @@ app.use(session({
     cookie: {
         httpOnly: true,
         sameSite: 'lax',
-        secure: false,
+        secure: isProd,
         maxAge: 60 * 60 * 1000
     }
 }));
