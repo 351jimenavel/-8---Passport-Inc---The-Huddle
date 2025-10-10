@@ -5,6 +5,7 @@ import requireAuthCookie from '../middlewares/requireAuthCookie.js'
 import requireRole from '../middlewares/requireRole.js'
 import validateCSRF from '../middlewares/validateCSRF.js'
 import { UserRepository } from '../models/user.js';
+import { randomBytes } from 'node:crypto';
 
 router.get('/admin', requireAuthCookie, requireRole('ADMIN'), (req, res) => {
     if (!req.session.csrfToken) {
