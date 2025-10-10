@@ -234,10 +234,4 @@
     }
     });
 
-    // --- Auto-carga de /api/me al entrar a /jwt ---
-    (async () => {
-        if (window.location.pathname === '/jwt') {
-        await updateMeFromStorage();
-        }
-    })();
 })();
