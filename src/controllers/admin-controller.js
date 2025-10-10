@@ -11,5 +11,5 @@ export const deleteUser = (req, res) => {
         return res.status(400).send('Cannot delete yourself');
     }
     UserRepository.deleteById(id);
-    res.json({ message: "User deleted" });
+    return res.status(204).end();
 }
